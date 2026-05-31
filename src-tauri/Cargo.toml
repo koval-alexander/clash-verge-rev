@@ -110,6 +110,8 @@ rust_iso3166 = "0.1.14"
 dark-light = { git = "https://github.com/rust-dark-light/dark-light" }
 bytes = "1.11.1"
 tokio-util = { version = "0.7.18", features = ["time"] }
+machine-uid = "0.6.0"
+os_info = "3.15.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.4"

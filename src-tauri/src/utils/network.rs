@@ -222,6 +222,29 @@ impl NetworkManager {
             request_builder = request_builder.header(key, value);
         }
 
+        let hwid = machine_uid::get().unwrap_or_else(|_| "unknown".to_string());
+        request_builder = request_builder.header("x-hwid", hwid);
+
+        let info = os_info::get();
+        let os_type = match info.os_type() {
+            os_info::Type::Macos => "macOS",
+            os_info::Type::Windows => "Windows",
+            os_info::Type::Linux => "Linux",
+            _ => "unknown",
+        };
+        request_builder = request_builder.header("x-device-os", os_type);
+
+        let os_version = info.version().to_string();
+        request_builder = request_builder.header("x-ver-os", os_version);
+
+        let device_model = match info.os_type() {
+            os_info::Type::Macos => "Mac",
+            os_info::Type::Windows => "Windows",
+            os_info::Type::Linux => "Linux",
+            _ => "unknown",
+        };
+        request_builder = request_builder.header("x-device-model", device_model);
+
         let response = match request_builder.send().await {
             Ok(resp) => resp,
             Err(e) => {
