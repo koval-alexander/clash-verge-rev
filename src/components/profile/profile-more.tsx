@@ -17,6 +17,7 @@ import { useEditorDocument } from '@/hooks/use-editor-document'
 import { viewProfile, readProfileFile, saveProfileFile } from '@/services/cmds'
 import { showNotice } from '@/services/notice-service'
 
+import { EnhanceHint } from './enhance-hint'
 import { LogViewer } from './log-viewer'
 import { ProfileBox } from './profile-box'
 
@@ -27,6 +28,15 @@ interface Props {
 }
 
 const EMPTY_LOG_INFO: [string, string][] = []
+
+// Default global extend script content (mirrors `ITEM_SCRIPT` in
+// src-tauri/src/utils/tmpl.rs).
+const DEFAULT_SCRIPT = `// Define main function (script entry)
+
+function main(config, profileName) {
+  return config;
+}
+`
 
 // profile enhanced item
 export const ProfileMore = (props: Props) => {
@@ -93,6 +103,10 @@ export const ProfileMore = (props: Props) => {
     onSave?.(document.savedValue, currentValue)
     document.markSaved(currentValue)
   })
+
+  const handleResetToDefault = useCallback(() => {
+    document.setValue(DEFAULT_SCRIPT)
+  }, [document])
 
   return (
     <>
@@ -200,6 +214,11 @@ export const ProfileMore = (props: Props) => {
         <EditorViewer
           open={true}
           title={t(globalTitles[id])}
+          description={
+            <EnhanceHint
+              stage={id === 'Merge' ? 'globalMerge' : 'globalScript'}
+            />
+          }
           value={document.value}
           language={id === 'Merge' ? 'yaml' : 'javascript'}
           path={`profile-more:${id}.${id === 'Merge' ? 'yaml' : 'js'}`}
@@ -207,6 +226,7 @@ export const ProfileMore = (props: Props) => {
           dirty={document.dirty}
           onChange={document.setValue}
           onSave={handleSave}
+          onResetToDefault={id === 'Script' ? handleResetToDefault : undefined}
           onClose={() => setFileOpen(false)}
         />
       )}
