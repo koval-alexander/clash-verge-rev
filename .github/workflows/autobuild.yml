@@ -377,15 +377,23 @@ jobs:
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
 
       - name: Upload Release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ env.TAG_NAME }}
-          name: 'Clash Verge Rev ${{ env.TAG_CHANNEL }}'
-          prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          # softprops/action-gh-release returns "403 Resource not accessible by
+          # integration" when uploading assets in this repository, so use the gh CLI.
+          shopt -s nullglob
+          files=(
             target/${{ matrix.target }}/release/bundle/deb/*.deb
             target/${{ matrix.target }}/release/bundle/rpm/*.rpm
+          )
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no bundle files found for target ${{ matrix.target }}"
+            exit 1
+          fi
+          printf 'uploading: %s\n' "${files[@]}"
+          gh release upload "${{ env.TAG_NAME }}" "${files[@]}" --clobber
 
   autobuild-x86-arm-windows_webview2:
     name: Autobuild x86 and ARM Windows with WebView2
@@ -493,13 +501,20 @@ jobs:
           }
 
       - name: Upload Release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ env.TAG_NAME }}
-          name: 'Clash Verge Rev ${{ env.TAG_CHANNEL }}'
-          prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: target/${{ matrix.target }}/release/bundle/nsis/*setup*
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          # softprops/action-gh-release returns "403 Resource not accessible by
+          # integration" when uploading assets in this repository, so use the gh CLI.
+          shopt -s nullglob
+          files=(target/${{ matrix.target }}/release/bundle/nsis/*setup*)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no webview2 installers found for target ${{ matrix.target }}"
+            exit 1
+          fi
+          printf 'uploading: %s\n' "${files[@]}"
+          gh release upload "${{ env.TAG_NAME }}" "${files[@]}" --clobber
 
   notify-telegram:
     name: Notify Telegram
