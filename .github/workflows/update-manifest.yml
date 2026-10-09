@@ -1,0 +1,38 @@
+name: Update Manifest
+
+# Keeps the `updater` release in sync with the rolling `autobuild` build so the
+# in-app updater (see src-tauri/tauri.conf.json) always has a fresh manifest.
+# Upstream's updater.yml cannot do this in the fork: it reads
+# repos.getLatestRelease(), which 404s when a repository only publishes
+# prereleases.
+on:
+  workflow_run:
+    workflows: ["Auto Build"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-manifest
+  cancel-in-progress: false
+
+jobs:
+  updater-manifest:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+
+      - name: Publish updater manifest
+        run: node scripts/fork-updater.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
