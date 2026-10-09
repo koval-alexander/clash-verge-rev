@@ -7,10 +7,24 @@
 set -euo pipefail
 
 CHANGELOG_FILE="Changelog.md"
+EN_CHANGELOG_FILE="Changelog.en.md"
 
 if [[ ! -f "$CHANGELOG_FILE" ]]; then
   echo "❌ 文件不存在: $CHANGELOG_FILE" >&2
   exit 1
+fi
+
+# This fork keeps an English mirror of the changelog. Prefer it, but only when it
+# covers the same newest version as the original; a stale mirror must not leak an
+# old changelog into the release body, so fall back to the original instead.
+if [[ -f "$EN_CHANGELOG_FILE" ]]; then
+  ZH_VERSION=$(awk '/^## v/ {print $2; exit}' "$CHANGELOG_FILE")
+  EN_VERSION=$(awk '/^## v/ {print $2; exit}' "$EN_CHANGELOG_FILE")
+  if [[ -n "$EN_VERSION" && "$EN_VERSION" == "$ZH_VERSION" ]]; then
+    CHANGELOG_FILE="$EN_CHANGELOG_FILE"
+  else
+    echo "⚠️  $EN_CHANGELOG_FILE is stale (original=$ZH_VERSION, mirror=$EN_VERSION) - using the original" >&2
+  fi
 fi
 
 # 提取从第一个 '## v' 开始到 '---' 或下一个 '## v' 前的内容
