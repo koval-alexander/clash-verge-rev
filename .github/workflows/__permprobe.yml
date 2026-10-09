@@ -1,0 +1,60 @@
+name: __permprobe
+
+on:
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe release write access with GITHUB_TOKEN
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set +e
+          echo "== token identity =="
+          gh auth status 2>&1 | head -20
+          echo
+          RID=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$REPO/releases/tags/autobuild" | jq -r '.id // empty')
+          echo "release id: $RID"
+          echo
+          echo "== 1. GET release =="
+          curl -sS -o /tmp/g.json -w "   status=%{http_code}\n" -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/$REPO/releases/$RID"
+          echo
+          echo "== 2. PATCH release name only =="
+          curl -sS -o /tmp/p.json -w "   status=%{http_code}\n" -X PATCH \
+                -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                -d '{"name":"Clash Verge Rev AutoBuild"}' \
+                "https://api.github.com/repos/$REPO/releases/$RID"
+          head -c 500 /tmp/p.json; echo
+          echo
+          echo "== 3. PATCH release with tag_name + target_commitish (what the action sends) =="
+          curl -sS -o /tmp/p2.json -w "   status=%{http_code}\n" -X PATCH \
+                -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                -d "{\"tag_name\":\"autobuild\",\"target_commitish\":\"${{ github.sha }}\",\"name\":\"Clash Verge Rev AutoBuild\",\"prerelease\":true,\"draft\":false}" \
+                "https://api.github.com/repos/$REPO/releases/$RID"
+          head -c 500 /tmp/p2.json; echo
+          echo
+          echo "== 4. POST dummy asset =="
+          echo probe > /tmp/probe.txt
+          curl -sS -o /tmp/a.json -w "   status=%{http_code}\n" -X POST \
+                -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: text/plain" \
+                --data-binary @/tmp/probe.txt \
+                "https://uploads.github.com/repos/$REPO/releases/$RID/assets?name=__permprobe.txt"
+          head -c 300 /tmp/a.json; echo
+          AID=$(jq -r '.id // empty' /tmp/a.json)
+          if [ -n "$AID" ]; then
+            echo "== 5. DELETE dummy asset (id=$AID) =="
+            curl -sS -o /dev/null -w "   status=%{http_code}\n" -X DELETE \
+                 -H "Authorization: Bearer $GH_TOKEN" \
+                 "https://api.github.com/repos/$REPO/releases/assets/$AID"
+          fi
+          echo
+          echo "== 6. git tag ref for autobuild =="
+          curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+               "https://api.github.com/repos/$REPO/git/ref/tags/autobuild" | jq -c '{ref, sha:.object.sha}'
