@@ -1,3 +1,11 @@
+> [!NOTE]
+> **This is a fork.** [koval-alexander/clash-verge-rev](https://github.com/koval-alexander/clash-verge-rev)
+> is a fork of [clash-verge-rev/clash-verge-rev](https://github.com/clash-verge-rev/clash-verge-rev)
+> with **HWID support** — subscription requests are sent with device headers
+> (`x-hwid`, `x-device-os`, `x-ver-os`, `x-device-model`), so a provider can bind a subscription
+> to a single device. Everything else is the upstream project's work; please report application
+> bugs upstream.
+
 <h1 align="center">
   <img src="./src-tauri/icons/icon.png" alt="Clash" width="128" />
   <br>
