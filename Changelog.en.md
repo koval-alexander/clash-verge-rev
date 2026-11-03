@@ -1,3 +1,50 @@
+## v2.5.9
+
+- **Mihomo(Meta) core upgraded to v1.19.33**
+
+<details>
+<summary><strong> 🐞 Bug Fixes </strong></summary>
+
+- Fixed the "Edit Rules" dialog erroring when a rule-extension item is an empty list
+- Fixed scheduled automatic backups not running after the app restarts
+- Fixed tray latency tests behaving differently from the Proxy page, and removed the "Test latency" entry from the tray
+- Fixed importing a subscription from a URL reloading the current configuration even when the imported subscription is not the one in use
+- Fixed the Home page speed-test card staying in "testing" after a failure
+- Fixed the Proxy page not showing the latest latency after expanding a group until the node is switched
+- Fixed node groups not expanding in Global mode on the Proxy page
+- Fixed custom CSS being unable to change the editor font and font size
+- Fixed WebDAV settings not saving after being cleared
+
+**🍎 macOS**
+
+- macOS: fixed the Home page speed test and traffic graph not rendering on Big Sur
+
+**🐧 Linux**
+
+- Linux: fixed deb/rpm packages wrongly bundling the extra `frontend-contract` executable, which broke downstream repackaging
+
+</details>
+
+<details>
+<summary><strong> ✨ New Features </strong></summary>
+
+- Added a "DNS mode" option to the virtual NIC settings, letting you configure mihomo's system DNS behaviour
+- Added an auto-refresh toggle for "IP information"; manual refresh still works when it is off
+- Added Muse AI unlock detection, with a "Risky" marker for Muse AI's Cloudflare challenge
+
+</details>
+
+<details>
+<summary><strong> 🚀 Improvements </strong></summary>
+
+- Improved chained proxies: the speed-impact warning must now be confirmed before enabling, and empty panels gained a "Close" button
+
+**🖥️ Windows**
+
+- Windows system proxy now bypasses `*.local` domains by default, so `.local` hostnames of LAN devices are no longer proxied
+
+</details>
+
 ## v2.5.8
 
 <details>
