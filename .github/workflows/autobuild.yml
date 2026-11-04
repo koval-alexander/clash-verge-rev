@@ -125,7 +125,7 @@ jobs:
   clean_old_assets:
     name: Clean Old Release Assets
     needs: [check_commit, update_tag]
-    if: ${{ needs.check_commit.outputs.should_run == 'true' && needs.update_tag.result == 'success' }}
+    if: ${{ github.run_attempt == 1 && needs.check_commit.outputs.should_run == 'true' && needs.update_tag.result == 'success' }}
 
     uses: ./.github/workflows/clean-old-assets.yml
     with:
