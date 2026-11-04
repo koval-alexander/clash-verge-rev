@@ -1,3 +1,31 @@
+## v2.5.10
+
+<details>
+<summary><strong> 🐞 Bug Fixes </strong></summary>
+
+- Fixed Global mode missing the `GLOBAL` proxy group, so the global outbound could not be selected separately
+- Fixed the core failing to start in Service mode when an SSH node's `private-key` uses a private key file
+- Fixed the core-updated GEO database in Service mode not being synced back to the app directory, which made rules using the new categories fail validation
+- Fixed that after a subscription's DNS configuration changed, "DNS Override" was actually off while the toggle still showed it as on with no hint
+
+**🖥️ Windows**
+
+- Windows: fixed the installer not prompting to quit the running app on reinstall or overwrite, which caused uninstall errors or a failed overwrite
+
+</details>
+
+<details>
+<summary><strong> ✨ New Features </strong></summary>
+
+
+</details>
+
+<details>
+<summary><strong> 🚀 Improvements </strong></summary>
+
+
+</details>
+
 ## v2.5.9
 
 - **Mihomo(Meta) core upgraded to v1.19.33**
