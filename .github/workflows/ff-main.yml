@@ -1,0 +1,37 @@
+name: Fast-forward main
+
+# The release gate (scripts-workflow/release.mjs validateTag) requires the tagged
+# commit to be an ancestor of BOTH dev and main. This fork never merges dev into
+# main by hand, so keep main a fast-forward of dev at all times.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ff-main
+  cancel-in-progress: false
+
+jobs:
+  fast-forward:
+    name: Fast-forward main to dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Push main
+        run: |
+          git fetch --no-tags origin dev main
+          if git merge-base --is-ancestor refs/remotes/origin/main HEAD; then
+            git push origin HEAD:refs/heads/main
+          else
+            echo "main is not behind dev; leaving it alone."
+            exit 1
+          fi
