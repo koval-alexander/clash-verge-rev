@@ -545,37 +545,6 @@ jobs:
           gh release upload "$env:RELEASE_TAG" $files --clobber
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-  prepare-next-dev:
-    name: Prepare Next Dev Version
-    if: ${{ needs.update_tag.outputs.channel == 'stable' }}
-    needs: [prepare_release, update_tag]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    concurrency:
-      group: prepare-release
-      cancel-in-progress: false
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_TAG: ${{ needs.prepare_release.outputs.release_tag }}
-      SOURCE_SHA: ${{ needs.prepare_release.outputs.source_sha }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: refs/heads/dev
-          fetch-depth: 0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '26.13.0'
-      - uses: pnpm/action-setup@v6
-        with:
-          run_install: false
-      - name: Prepare version and changelog PR
-        run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          node scripts-workflow/release.mjs next-dev
-
   release-update:
     if: ${{ needs.update_tag.outputs.channel == 'stable' }}
     name: Release Update
