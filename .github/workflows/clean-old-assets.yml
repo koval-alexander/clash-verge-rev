@@ -182,7 +182,15 @@ jobs:
               fi
               
               echo "  Deleting: $asset"
-              if gh release delete-asset "$TAG_NAME" "$asset" -y 2>/dev/null; then
+              deleted=false
+              for attempt in 1 2 3; do
+                if gh release delete-asset "$TAG_NAME" "$asset" -y 2>/dev/null; then
+                  deleted=true
+                  break
+                fi
+                sleep $((attempt * 3))
+              done
+              if [ "$deleted" = true ]; then
                 DELETED_COUNT=$((DELETED_COUNT + 1))
               else
                 echo "    ⚠️  Failed to delete $asset"
@@ -199,8 +207,9 @@ jobs:
             echo "  - Kept: $(echo -e "$ASSETS_TO_KEEP" | grep -v '^$' | wc -l) assets"
             
             if [ $FAILED_COUNT -gt 0 ]; then
-              echo "⚠️  Some assets failed to delete. Please check the logs above."
-              exit 1
+              # Cleanup is housekeeping: a leftover asset is retried on the next
+              # run and must not fail a build whose artifacts are all uploaded.
+              echo "⚠️  Some assets failed to delete after retries; leaving them for the next run."
             else
               echo "✅ Cleanup completed successfully!"
             fi
